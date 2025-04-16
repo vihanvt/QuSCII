@@ -1,9 +1,11 @@
 import numpy as np
 from qiskit import *
+from qiskit_aer import Aer
 from qiskit import QuantumCircuit,transpile
 from PIL import Image,ImageDraw,ImageFont
 import math
 from math import pi
+brightness_cache={};
 def quantum(inp_path,out_path,block_size,font_size,magnitude,vals="!@#$%&*()_+",use_color=False):
     try:
         input_image=Image.open(inp_path)
@@ -25,7 +27,9 @@ def quantum(inp_path,out_path,block_size,font_size,magnitude,vals="!@#$%&*()_+",
     draw=ImageDraw.Draw(output)
     simulator=Aer.get_backend('qasm_simulator')
     def get_brightness(classical_brightness):
-
+        if classical_brightness in brightness_cache:
+            return brightness_cache[classical_brightness]
+        
         num_qubits=2
         qc=QuantumCircuit(num_qubits,num_qubits)
         theta=(classical_brightness/255.0)*(pi/2)
@@ -36,7 +40,7 @@ def quantum(inp_path,out_path,block_size,font_size,magnitude,vals="!@#$%&*()_+",
             qc.cry((classical_brightness/255.0)*(pi/4),0,1)
         qc.measure(range(num_qubits),range(num_qubits))
         final=transpile(qc,simulator)
-        job=simulator.run(final,shots=10)
+        job=simulator.run(final,shots=1)
         result=job.result()
         counts=result.get_counts(qc)
         
@@ -50,6 +54,7 @@ def quantum(inp_path,out_path,block_size,font_size,magnitude,vals="!@#$%&*()_+",
 
             #USE LERP TO BLEND: general formula: a * (1 - t) + b * t(by a factor of t) in our case t=magnitude
             updated_brightness=int(classical_brightness*(1-magnitude)+adjusted_brightness*(magnitude))
+            brightness_cache[classical_brightness]=updated_brightness
             return updated_brightness
 
 #input image processing
@@ -71,10 +76,10 @@ def quantum(inp_path,out_path,block_size,font_size,magnitude,vals="!@#$%&*()_+",
     for x in range(rows):
         for y in range (cols):
             if use_color:
-                r,g,b=input_image2.convert("RGB").getpixel((x,y))
+                r,g,b=input_image2.convert("RGB").getpixel((y,x))
                 brightness=(0.2126*r+0.7152*g+0.0722*b)
             else:
-                brightness=input_image2.convert("L").getpixel((x,y))
+                brightness=input_image2.convert("L").getpixel((y,x))
             
             output_brightness=get_brightness(brightness)
 
@@ -105,8 +110,7 @@ if __name__=="__main__":
     block_size=6
     magnitude=0.22
     font_size=10
-    use_color=True
-    inp_path='test.png'
-    output_path='result.png'
+    inp_path='avicii.jpg'
+    output_path='result.jpg'
     ascii_set=" .'`^\",:;Il!i><~+_-?][}{1)(|/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$"     
-    quantum(inp_path,output_path,block_size,font_size,magnitude,use_color=use_color)
+    quantum(inp_path,output_path,block_size,font_size,magnitude,use_color=True)
