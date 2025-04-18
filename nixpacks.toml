@@ -1,0 +1,5 @@
+[build]
+image = "python:3.9"
+
+[start]
+command = "python app.py"
