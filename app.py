@@ -116,11 +116,17 @@ def upload_file():
     file.save(inp_path)
     print(f"File saved at {inp_path}")
     magnitude = float(request.form['magnitude'])
+    block_size = 6
+    font_size = 10
+    ascii_set = " .'`^\",:;Il!i><~+_-?][}{1)(|/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$"
+    magnitude = float(request.form['magnitude'])
+    use_color = True
     print(f"value of magnitude is {magnitude}")
     quantum(inp_path, out_path, block_size, font_size, magnitude, ascii_set, use_color=True)
     timestamp = int(time.time())
     print(f"Processed image saved at {out_path}")
     image_url = f"/static/result.jpg?{timestamp}"
+
     
     return f"""
     <html>
@@ -150,15 +156,3 @@ def upload_file():
         </body>
     </html>
     """
-
-
-
-if __name__ == "__main__":
-    block_size = 6
-    magnitude = 0.2
-    font_size = 10
-    inp_path = 'test.jpg'
-    output_path = 'result.jpg'
-    ascii_set = " .'`^\",:;Il!i><~+_-?][}{1)(|/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$"     
-    use_color = True
-    app.run(debug=True)
