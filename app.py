@@ -110,16 +110,26 @@ def index():
 def upload_file():
     if 'file' not in request.files:
         return "No file part"
+    
     file = request.files['file']
     inp_path = 'uploads/' + file.filename
-    out_path = 'static/result.jpg'  # Path to save the processed image
+    out_path = 'static/result.jpg'
     file.save(inp_path)
-    
-    # Simulate processing time
-    time.sleep(2)  # Simulate a delay for processing (remove this in production)
 
-    # Render loading page
-    return render_template('loading.html')
+    # Call your quantum image processor here
+    ascii_set = "@%#*+=-:. "  # or any other ASCII set you want
+    quantum(
+        inp_path=inp_path,
+        out_path=out_path,
+        block_size=8,          # change as needed
+        font_size=12,          # not used directly right now
+        magnitude=0.5,         # quantum randomness strength
+        ascii_set=ascii_set,
+        use_color=True         # set False for grayscale
+    )
+
+    return redirect(url_for('result_page'))
+
 
 @app.route('/result')
 def result_page():
