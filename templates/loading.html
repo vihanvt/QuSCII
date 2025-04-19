@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Loading...</title>
+    <title>Processing...</title>
     <style>
       body {
         background-color: black;
@@ -16,39 +16,63 @@
         font-family: "Inter", Tahoma, Geneva, Verdana, sans-serif;
       }
       .loading-bar {
-        width: 100%;
+        width: 300px;
         height: 30px;
         background-color: white;
         position: relative;
         overflow: hidden;
         border-radius: 5px;
+        margin: 20px 0;
       }
       .loading-progress {
         height: 100%;
         background-color: #db0042;
         width: 0;
-        animation: loading 5s linear forwards; /* Adjust duration as needed */
+        animation: loading 2s ease-in-out infinite;
       }
       @keyframes loading {
-        from {
+        0% {
           width: 0;
         }
-        to {
+        50% {
           width: 100%;
         }
+        100% {
+          width: 0;
+        }
+      }
+      .quantum-text {
+        font-size: 24px;
+        margin-bottom: 20px;
+        color: #db0042;
       }
     </style>
   </head>
   <body>
-    <h1>Processing Your Image...</h1>
+    <div class="quantum-text">Quantum Processing in Progress...</div>
     <div class="loading-bar">
       <div class="loading-progress"></div>
     </div>
     <script>
-      // Redirect to the result page after loading
-      setTimeout(() => {
-        window.location.href = "{{ url_for('result_page') }}";
-      }, 5000); // Adjust time to match loading duration
+      // Check processing status and redirect when complete
+      async function checkStatus() {
+        try {
+          const response = await fetch('/process/{{ processing_id }}');
+          const data = await response.json();
+
+          if (data.status === 'completed') {
+            window.location.href = '/result';
+          } else {
+            setTimeout(checkStatus, 1000); // Check again in 1 second
+          }
+        } catch (error) {
+          console.error('Error checking status:', error);
+          setTimeout(checkStatus, 1000);
+        }
+      }
+
+      // Start checking status
+      checkStatus();
     </script>
   </body>
 </html>

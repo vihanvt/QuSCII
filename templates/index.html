@@ -100,10 +100,10 @@
   </head>
   <body>
     <img
-      src="{{ url_for('static', filename='heading.png') }}"
+      src="/static/heading.png"
       alt="QuSCII Logo"
     />
-    <form action="/upload" method="post" enctype="multipart/form-data">
+    <form action="/upload" method="post" enctype="multipart/form-data" id="uploadForm">
       <label class="file-upload">
         Choose Image
         <input type="file" name="file" accept="image/*" required />
@@ -126,9 +126,6 @@
         <span id="value">0.0</span>
       </div>
       <h3>Control The Quantum-ness</h3>
-
-      <!-- Hidden input to send the slider value -->
-      <input type="hidden" id="magnitude-value" name="magnitude" value="0" />
     </form>
 
     <script>
@@ -139,6 +136,28 @@
       slider.addEventListener("input", function () {
         valueDisplay.textContent = slider.value;
         magnitudeValueInput.value = slider.value;  // Update the hidden field with the slider value
+      });
+
+      document.getElementById('uploadForm').addEventListener('submit', function(e) {
+        const loadingOverlay = document.createElement('div');
+        loadingOverlay.style.position = 'fixed';
+        loadingOverlay.style.top = '0';
+        loadingOverlay.style.left = '0';
+        loadingOverlay.style.width = '100%';
+        loadingOverlay.style.height = '100%';
+        loadingOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+        loadingOverlay.style.display = 'flex';
+        loadingOverlay.style.justifyContent = 'center';
+        loadingOverlay.style.alignItems = 'center';
+        loadingOverlay.style.zIndex = '1000';
+        
+        const loadingText = document.createElement('div');
+        loadingText.textContent = 'Uploading...';
+        loadingText.style.color = 'white';
+        loadingText.style.fontSize = '24px';
+        
+        loadingOverlay.appendChild(loadingText);
+        document.body.appendChild(loadingOverlay);
       });
     </script>
   </body>
