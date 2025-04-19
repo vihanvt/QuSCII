@@ -2,7 +2,7 @@ import numpy as np
 import time
 from qiskit import QuantumCircuit, transpile
 from qiskit_aer import Aer
-from flask import Flask, render_template, request, send_from_directory
+from flask import Flask, render_template, request, send_from_directory, redirect, url_for
 import os
 from PIL import Image, ImageDraw, ImageFont
 import math
@@ -112,50 +112,21 @@ def upload_file():
         return "No file part"
     file = request.files['file']
     inp_path = 'uploads/' + file.filename
-    out_path = 'static/result.jpg'
+    out_path = 'static/result.jpg'  # Path to save the processed image
     file.save(inp_path)
-    print(f"File saved at {inp_path}")
-    magnitude = float(request.form['magnitude'])
-    block_size = 6
-    font_size = 10
-    ascii_set = " .'`^\",:;Il!i><~+_-?][}{1)(|/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$"
-    magnitude = float(request.form['magnitude'])
-    use_color = True
-    print(f"value of magnitude is {magnitude}")
-    quantum(inp_path, out_path, block_size, font_size, magnitude, ascii_set, use_color=True)
-    timestamp = int(time.time())
-    print(f"Processed image saved at {out_path}")
-    image_url = f"/static/result.jpg?{timestamp}"
-
     
-    return f"""
-    <html>
-        <head>
-            <style>
-                body {{
-                    background-color: black;
-                    color: #db0042;
-                    font-family: "Inter", Tahoma, Geneva, Verdana, sans-serif;
-                    text-align: center;
-                    padding-top: 100px;
-                }}
-                h1, h3 {{
-                    color: #db0042;
-                    margin: 20px 0;
-                }}
-                img {{
-                    max-width: 100%;
-                    height: auto;
-                }}
-            </style>
-        </head>
-        <body>
-            <h1>Quantumified!!</h1>
-            <h3>Download it!! <a href='{image_url}'>here</a></h3>
-            <img src='{image_url}' alt='Processed Image'>
-        </body>
-    </html>
-    """
+    # Simulate processing time
+    time.sleep(2)  # Simulate a delay for processing (remove this in production)
+
+    # Render loading page
+    return render_template('loading.html')
+
+@app.route('/result')
+def result_page():
+    # Here you would process the image and generate the result
+    # For demonstration, we'll just show the processed image
+    image_url = url_for('static', filename='result.jpg')  # URL for the processed image
+    return render_template('result.html', image_url=image_url)
 
 if __name__ == '__main__':
     app.run(debug=True)
