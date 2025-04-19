@@ -99,10 +99,6 @@ def quantum(inp_path, out_path, block_size, font_size, magnitude, ascii_set, use
     print("Saved your desired image at:", out_path)
     return output
 
-@app.route('/')
-def index():
-    return render_template('index.html')
-
 @app.route('/upload', methods=['POST'])
 def upload_file():
     if 'file' not in request.files:
@@ -112,18 +108,24 @@ def upload_file():
     inp_path = 'uploads/' + file.filename
     out_path = 'static/result.jpg'
     file.save(inp_path)
+    
+    # Get the value of the magnitude slider from the form
+    magnitude = float(request.form['magnitude'])  # Convert it to a float
+    print(f"Received magnitude value: {magnitude}")  # Print the value
+    
     ascii_set = "@%#*+=-:. "  
     quantum(
         inp_path=inp_path,
         out_path=out_path,
         block_size=6,          
         font_size=10,          
-        magnitude=0.1,         
+        magnitude=magnitude,  # Use the received magnitude value
         ascii_set=ascii_set,
         use_color=True         
     )
 
     return redirect(url_for('result_page'))
+
 
 
 @app.route('/result')
