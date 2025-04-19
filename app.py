@@ -102,10 +102,10 @@ def upload_file():
     out_path = 'static/result.jpg'
     file.save(inp_path)
     
-    magnitude = float(request.form['magnitude'])  # Convert it to a float
-    print(f"Received magnitude value: {magnitude}")  # Print the value
+    magnitude = float(request.form['magnitude'])  
+    print(f"Received magnitude value: {magnitude}")  
     
-    ascii_set = "@%#*+=-:. "  
+    ascii_set = " .'`^\",:;Il!i><~+_-?][}{1)(|/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$"
     quantum(
         inp_path=inp_path,
         out_path=out_path,
