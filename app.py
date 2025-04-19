@@ -94,9 +94,6 @@ def quantum(inp_path, out_path, block_size, font_size, magnitude, ascii_set, use
             #sketch the pixels back at positions
             draw.text((y * char_width, x* char_height), char, font=font, fill=fill)
             
-
-
-    # Convert to RGB mode before saving as JPEG
     output = output.convert('RGB')
     output.save(out_path)
     print("Saved your desired image at:", out_path)
@@ -115,17 +112,15 @@ def upload_file():
     inp_path = 'uploads/' + file.filename
     out_path = 'static/result.jpg'
     file.save(inp_path)
-
-    # Call your quantum image processor here
-    ascii_set = "@%#*+=-:. "  # or any other ASCII set you want
+    ascii_set = "@%#*+=-:. "  
     quantum(
         inp_path=inp_path,
         out_path=out_path,
-        block_size=8,          # change as needed
-        font_size=12,          # not used directly right now
-        magnitude=0.5,         # quantum randomness strength
+        block_size=6,          
+        font_size=10,          
+        magnitude=0.1,         
         ascii_set=ascii_set,
-        use_color=True         # set False for grayscale
+        use_color=True         
     )
 
     return redirect(url_for('result_page'))
@@ -133,9 +128,7 @@ def upload_file():
 
 @app.route('/result')
 def result_page():
-    # Here you would process the image and generate the result
-    # For demonstration, we'll just show the processed image
-    image_url = url_for('static', filename='result.jpg')  # URL for the processed image
+    image_url = url_for('static', filename='result.jpg')  
     return render_template('result.html', image_url=image_url)
 
 if __name__ == '__main__':
