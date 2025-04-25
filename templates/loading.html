@@ -57,11 +57,12 @@
       // Check processing status and redirect when complete
       async function checkStatus() {
         try {
-          const response = await fetch('/process/{{ processing_id }}');
+          const magnitude = '{{ magnitude }}';
+          const response = await fetch('/process/{{ processing_id }}?magnitude=' + magnitude);
           const data = await response.json();
 
           if (data.status === 'completed') {
-            window.location.href = '/result';
+            window.location.href = '/result?process_id={{ processing_id }}';
           } else {
             setTimeout(checkStatus, 1000); // Check again in 1 second
           }

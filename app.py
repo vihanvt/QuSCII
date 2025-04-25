@@ -12,26 +12,11 @@ from math import pi
 from pathlib import Path
 import shutil
 import uuid
-from starlette.middleware.sessions import SessionMiddleware
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
 app = FastAPI()
-
-# Add session middleware with strong secret key
-app.add_middleware(
-    SessionMiddleware,
-    secret_key="your-secret-key-here",  # Replace with a secure secret key
-    session_cookie="quscii_session",
-    max_age=3600  # Session expires in 1 hour
-)
-
-# Mount static files - but NOT the results directory
 app.mount("/static", StaticFiles(directory="static", html=True), name="static")
-
-# Templates
+#using jinja to include html with flask
 templates = Jinja2Templates(directory="templates")
-
-# Ensure directories exist
 Path("uploads").mkdir(exist_ok=True)
 Path("static/results").mkdir(exist_ok=True)
 
@@ -50,14 +35,13 @@ def quantum(inp_path, out_path, block_size, font_size, magnitude, ascii_set, use
     input_width, input_height = input_image.size
     rows = input_height // block_size
     cols = input_width // block_size
-
+    #resized image helps in processing faster
     resized = input_image.resize((cols, rows), Image.Resampling.LANCZOS)
     font = ImageFont.load_default()
-
     bbox = font.getbbox("A")
     char_width = bbox[2] - bbox[0]
     char_height = bbox[3] - bbox[1]
-
+    #output charecterstics  
     output_width = cols * char_width
     output_height = rows * char_height
     output = Image.new("RGB", (output_width, output_height), "black")
@@ -82,31 +66,36 @@ def quantum(inp_path, out_path, block_size, font_size, magnitude, ascii_set, use
         final = transpile(qc, simulator)
         result = simulator.run(final, shots=1).result()
         counts = result.get_counts(qc)
-
         if counts:
             key = list(counts.keys())[0]
             qval = int(key, 2) / (2**num_qubits - 1)
             qbright = qval * 255
+            #using lerp
             blended = int(val * (1 - magnitude) + qbright * magnitude)
             brightness_cache[val] = blended
             return blended
         return val
-
+    #pixel processing 
     for x in range(rows):
         for y in range(cols):
             r, g, b = resized.convert("RGB").getpixel((y,x))
+            #for colored image processing 
             if use_color:
                 r_new = get_brightness(r)
                 g_new = get_brightness(g)
                 b_new = get_brightness(b)
                 fill = (r_new, g_new, b_new)
+                #perceived brightness formula- v1
                 bright = int(0.2126 * r + 0.7152 * g + 0.0722 * b)
             else:
+                #for b/w images
                 gray = int(0.2126 * r + 0.7152 * g + 0.0722 * b)
                 bright = get_brightness(gray)
                 fill = (bright, bright, bright)
+            #lets map back the values of brightness to ascii- to mantain uniformity in the image
             ascii_index = min(int((bright / 255) * (len(ascii_set) - 1)), len(ascii_set) - 1)
             char = ascii_set[ascii_index]
+            #draw the ouput back 
             draw.text((y * char_width, x * char_height), char, font=font, fill=fill)
             
     output = output.convert('RGB')
@@ -120,45 +109,33 @@ async def home(request: Request):
 
 @app.post("/upload")
 async def upload_file(request: Request, file: UploadFile = File(...), magnitude: float = Form(...)):
-    # Generate unique ID for this processing request
     process_id = str(uuid.uuid4())
-    
-    # Save uploaded file
     file_path = f"uploads/{process_id}_{file.filename}"
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
-    
-    # Store process ID and magnitude in session
-    request.session["process_id"] = process_id
-    request.session["original_filename"] = file.filename
-    request.session["magnitude"] = magnitude
-    
-    # Return processing page response
+
     return templates.TemplateResponse(
         "loading.html", 
         {
             "request": request,
-            "processing_id": process_id
+            "processing_id": process_id,
+            "magnitude": magnitude,
+            "filename": file.filename
         }
     )
 
 @app.get("/process/{processing_id}")
-async def process_image(request: Request, processing_id: str):
-    # Verify the processing ID matches the session
-    if "process_id" not in request.session or request.session["process_id"] != processing_id:
-        raise HTTPException(status_code=403, detail="Unauthorized access")
+async def process_image(processing_id: str, magnitude: float):
+    #checking for original file name
+    upload_files = os.listdir("uploads")
+    file_match = [f for f in upload_files if f.startswith(processing_id)]
     
-    # Get the original filename from session
-    original_filename = request.session.get("original_filename")
-    if not original_filename:
-        raise HTTPException(status_code=400, detail="Invalid session")
+    if not file_match:
+        raise HTTPException(status_code=404, detail="Processing request not found")
     
-    file_path = f"uploads/{processing_id}_{original_filename}"
+    file_path = f"uploads/{file_match[0]}"
     out_path = f"static/results/{processing_id}_result.jpg"
-    ascii_set = " .'`^\",:;Il!i><~+_-?][}{1)(|/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$"
-    
-    # Get magnitude from session
-    magnitude = float(request.session.get("magnitude", 0.5))
+    ascii_set = ".:-=+*#%@"
     
     quantum(
         inp_path=file_path,
@@ -170,22 +147,12 @@ async def process_image(request: Request, processing_id: str):
         use_color=True
     )
     
-    # Store the result path in session
-    request.session["result_path"] = out_path
-    
     return {"status": "completed"}
 
 @app.get("/result", response_class=HTMLResponse)
-async def result_page(request: Request):
-    # Check if user has a valid session with result path
-    if "process_id" not in request.session:
-        # Redirect to home if no valid session
-        return RedirectResponse(url="/", status_code=303)
-    
-    process_id = request.session["process_id"]
+async def result_page(request: Request, process_id: str):
     result_path = f"static/results/{process_id}_result.jpg"
-    
-    # Check if the result file exists
+
     if not os.path.exists(result_path):
         return RedirectResponse(url="/", status_code=303)
     
@@ -198,11 +165,7 @@ async def result_page(request: Request):
     )
 
 @app.get("/image/{process_id}")
-async def get_image(request: Request, process_id: str):
-    # Verify the process ID matches the session
-    if "process_id" not in request.session or request.session["process_id"] != process_id:
-        raise HTTPException(status_code=403, detail="Unauthorized")
-    
+async def get_image(process_id: str):
     image_path = f"static/results/{process_id}_result.jpg"
     
     if not os.path.exists(image_path):
