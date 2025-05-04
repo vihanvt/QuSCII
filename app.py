@@ -22,7 +22,6 @@ Path("uploads").mkdir(exist_ok=True)
 Path("static/results").mkdir(exist_ok=True)
 
 def quantum(inp_path, out_path, block_size, font_size, magnitude, ascii_set, use_color=True):
-    # Create a local cache for this function instance
     brightness_cache = {}
     
     def get_brightness(val):
@@ -63,8 +62,7 @@ def quantum(inp_path, out_path, block_size, font_size, magnitude, ascii_set, use
     rows = input_height // block_size
     cols = input_width // block_size
     resized = input_image.resize((cols, rows), Image.Resampling.LANCZOS)
-    
-    # Font setup
+
     font = ImageFont.load_default()
     bbox = font.getbbox("A")
     char_width = bbox[2] - bbox[0]
@@ -86,11 +84,7 @@ def quantum(inp_path, out_path, block_size, font_size, magnitude, ascii_set, use
             ascii_index = min(int((bright / 255) * (len(ascii_set) - 1)), len(ascii_set) - 1)
             char = ascii_set[ascii_index]
             draw.text(
-                (y * char_width, x * char_height),
-                char,
-                font=font,
-                fill=fill
-            )
+                (y * char_width, x * char_height),char,font=font,fill=fill)
     
     output = output.convert('RGB')
     output.save(out_path)

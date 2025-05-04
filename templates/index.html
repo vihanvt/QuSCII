@@ -97,6 +97,18 @@
         color: #ffffff;
         font-size: 20px;
       }
+
+      .elegant-box {
+        background-color: rgba(255, 255, 255, 0.1);
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        text-align: center;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        color: #ffffff;
+        font-size: 16px;
+        line-height: 1.5;
+      }
     </style>
   </head>
   <body>
@@ -110,7 +122,7 @@
         <input type="file" name="file" accept="image/*" required />
       </label>
       <input type="submit" value="Upload Image" />
-      
+
       <div>
         <label for="magnitude"></label>
         <br />
@@ -132,33 +144,69 @@
     <script>
       const slider = document.getElementById("magnitude");
       const valueDisplay = document.getElementById("value");
-      const magnitudeValueInput = document.getElementById("magnitude-value");
+      const uploadForm = document.getElementById("uploadForm");
 
       slider.addEventListener("input", function () {
         valueDisplay.textContent = slider.value;
-        magnitudeValueInput.value = slider.value;  // Update the hidden field with the slider value
       });
 
-      document.getElementById('uploadForm').addEventListener('submit', function(e) {
-        const loadingOverlay = document.createElement('div');
-        loadingOverlay.style.position = 'fixed';
-        loadingOverlay.style.top = '0';
-        loadingOverlay.style.left = '0';
-        loadingOverlay.style.width = '100%';
-        loadingOverlay.style.height = '100%';
-        loadingOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-        loadingOverlay.style.display = 'flex';
-        loadingOverlay.style.justifyContent = 'center';
-        loadingOverlay.style.alignItems = 'center';
-        loadingOverlay.style.zIndex = '1000';
+      uploadForm.addEventListener("submit", function (event) {
+        event.preventDefault(); // Prevent the default form submission
+
+        // Create a loading screen
+        const loadingScreen = document.createElement("div");
+        loadingScreen.style.position = "fixed";
+        loadingScreen.style.top = "0";
+        loadingScreen.style.left = "0";
+        loadingScreen.style.width = "100%";
+        loadingScreen.style.height = "100%";
+        loadingScreen.style.backgroundColor = "#121212";
+        loadingScreen.style.display = "flex";
+        loadingScreen.style.flexDirection = "column";
+        loadingScreen.style.alignItems = "center";
+        loadingScreen.style.justifyContent = "center";
+        loadingScreen.style.color = "#ffffff";
+        loadingScreen.style.zIndex = "1000";
         
-        const loadingText = document.createElement('div');
-        loadingText.textContent = 'Uploading...';
-        loadingText.style.color = 'white';
-        loadingText.style.fontSize = '24px';
-        
-        loadingOverlay.appendChild(loadingText);
-        document.body.appendChild(loadingOverlay);
+        const loadingText = document.createElement("h2");
+        loadingText.textContent = "Flipping Qubits....";
+        loadingScreen.appendChild(loadingText);
+        const loadingText2 = document.createElement("h3");
+        loadingText2.textContent = "This might take 2-3 minutes depending on image size...";
+        loadingText2.style.marginTop = "10px";
+        loadingText2.style.textAlign = "center";
+        loadingText2.style.fontSize = "1.2em";
+        loadingText2.style.color = "#ffffff";
+        loadingText2.style.maxWidth = "80%";
+        loadingText2.style.wordWrap = "break-word";
+        loadingScreen.appendChild(loadingText2);
+        const progressBar = document.createElement("div");
+        progressBar.style.width = "80%";
+        progressBar.style.height = "20px";
+        progressBar.style.backgroundColor = "#333";
+        progressBar.style.borderRadius = "10px";
+        progressBar.style.overflow = "hidden";
+        progressBar.style.marginTop = "20px";
+
+        const progress = document.createElement("div");
+        progress.style.width = "0";
+        progress.style.height = "100%";
+        progress.style.backgroundColor = "#db0042";
+        progress.style.transition = "width 2s ease";
+        progressBar.appendChild(progress);
+
+        loadingScreen.appendChild(progressBar);
+        document.body.appendChild(loadingScreen);
+
+        // Simulate progress bar animation
+        setTimeout(() => {
+          progress.style.width = "100%";
+        }, 100);
+
+        // Simulate form submission delay
+        setTimeout(() => {
+          uploadForm.submit(); // Submit the form after the loading screen
+        }, 2000);
       });
     </script>
   </body>
